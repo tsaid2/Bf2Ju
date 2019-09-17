@@ -7,3 +7,13 @@ mutable struct model
     nF :: Int
     # TODO continue this
 end
+
+
+"""
+    pre_parser(model)
+
+documentation
+"""
+function pre_parser(model)
+
+end # function

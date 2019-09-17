@@ -6,7 +6,7 @@ module BfInterpreter
 
     #using ResumableFunctions
 
-    export getInstructionsDict, bfType, runnable!, execute, bfVM, floatToBfInstruction, BracketError, MermoryBfVM, genesToBfInstructions
+    export getInstructionsDict, execute, bfVM, BracketError, MermoryBfVM, genesToBfInstructions
 
     struct BracketError <: Exception
         message :: String
@@ -176,5 +176,7 @@ module BfInterpreter
         end
         vm.output, vm.nbExec
     end
+
+
 
 end
