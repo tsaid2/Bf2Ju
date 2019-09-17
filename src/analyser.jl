@@ -27,13 +27,13 @@ module analyser
                     j = pop!(brstack)
                     indexclose[j] = i
                 catch
-                    return false, -1
+                    return false, indexopen, indexclose, i
                 end
                 # println(stderr,"]", i, length(brstack))
             end
         end
-        _result = (length(brstack) == 0)
-        return ( _result, length(brstack) )
+        #_result = (length(brstack) == 0)
+        return ( (length(brstack) == 0), indexopen, indexclose, -1)
     end
 
 end  # module analyser
