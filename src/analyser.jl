@@ -1,6 +1,8 @@
 module analyser
 
-    export BracketError, MermoryBfVM
+    using ResumableFunctions
+
+    export BracketError, MermoryBfVM, clearCode!, v_brackets
 
     struct BracketError <: Exception
         message :: String
@@ -35,5 +37,23 @@ module analyser
         #_result = (length(brstack) == 0)
         return ( (length(brstack) == 0), indexopen, indexclose, -1)
     end
+
+
+
+
+    """
+        clearCode!(bfCode :: String)
+
+    documentation
+    """
+    function clearCode!(bfCode :: String, instructionsSet :: Array)
+        for inst in bfCode
+            if inst ∈ instructionsSet
+                @yield inst
+        end # for
+    end # function
+
+
+
 
 end  # module analyser

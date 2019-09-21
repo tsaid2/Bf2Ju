@@ -6,11 +6,8 @@ module BfInterpreter
 
     #using ResumableFunctions
 
-    export getInstructionsDict, execute, bfVM, BracketError, MermoryBfVM, genesToBfInstructions
+    export getInstructionsDict, execute, bfVM, MermoryBfVM, genesToBfInstructions
 
-    struct BracketError <: Exception
-        message :: String
-    end
 
     struct MermoryBfVM <: Exception
         message :: String
