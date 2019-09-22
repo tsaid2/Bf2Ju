@@ -65,7 +65,8 @@ module main
         juInstructions['<'] = (n -> ' '^model.indentation * "p -= 1\n")
         juInstructions['.'] = (n -> ' '^model.indentation * "print(Char(cells[p]))\n")
         juInstructions[','] = (n -> ' '^model.indentation * "( print(\"insert a byte :\");parse(UInt8, readline()))\n")
-        juInstructions['['] = (n -> (str = ' '^model.indentation * "while (cells[p] != 0)\n"; model.indentation+=3; str))
+        juInstructions['['] = (n -> (str = ' '^model.indentation * "while (cells[p] != 0)\n"; model.indentation+=3;
+                                    str * ' '^model.indentation * "global p\n"))
         juInstructions[']'] = (n -> (model.indentation-=3 ; (' '^model.indentation) * "end\n"))
         juInstructions
     end # function
@@ -78,7 +79,7 @@ module main
     function getCode!(model)
         juInstructions = getCodesSet(model)
         bfcFreq = countmap([c for c in model.bfCode])
-        code = "p=1 # pointer \ncells = fill(UInt8(0),$(get(bfcFreq,'>',0)),1)\n"
+        code = "global p=1 # pointer \ncells = fill(UInt8(0),$(get(bfcFreq,'>',0)+1),1)\n"
         for c in model.bfCode
             code *= juInstructions[c](1)
         end # for
