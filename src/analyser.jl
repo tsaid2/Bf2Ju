@@ -41,15 +41,11 @@ module analyser
 
 
 
-    """
-        clearCode!(bfCode :: String)
-
-    documentation
-    """
-    function clearCode!(bfCode :: String, instructionsSet :: Array)
+    @resumable function clearCode!(bfCode :: String, instructionsSet :: Array)
         for inst in bfCode
             if inst ∈ instructionsSet
                 @yield inst
+            end
         end # for
     end # function
 
