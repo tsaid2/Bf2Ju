@@ -60,18 +60,24 @@ module main
     """=#
     function getCodesSet(model)
         juInstructions = Dict()
-        juInstructions['+'] = (n -> ' '^model.indentation * "cells[p] = (cells[p] + 1) % 256 \n")
-        juInstructions['-'] = (n -> ' '^model.indentation * "cells[p] = (cells[p] - 1) % 256 \n")
-        juInstructions['>'] = (n -> ' '^model.indentation * "p += 1\n")
-        juInstructions['<'] = (n -> ' '^model.indentation * "p -= 1\n")
-        juInstructions['.'] = (n -> ' '^model.indentation * "print(Char(cells[p]))\n")
+        juInstructions['+'] = (n ->
+                                    if n !=0
+                                        ' '^model.indentation * "cells[p] = (cells[p] + $n) % 256 \n"
+                                    else
+                                        ""
+                                    end
+                                    )
+        juInstructions['-'] = (n -> ' '^model.indentation * "cells[p] = (cells[p] - $n) % 256 \n")
+        juInstructions['>'] = (n -> ' '^model.indentation * "p += $n\n")
+        juInstructions['<'] = (n -> ' '^model.indentation * "p -= $n\n")
+        juInstructions['.'] = (n -> (' '^model.indentation * "print(Char(cells[p]))\n")^n)
         #juInstructions[','] = (n -> ' '^model.indentation * "( print(\"insert a byte :\");parse(UInt8, readline()))\n")
         juInstructions[','] = (n ->(
                             ' '^model.indentation * "try\n" *
                             ' '^model.indentation * "   print(\"insert a byte :\"); cells[p] = UInt8(readline()[1])\n" *
                             ' '^model.indentation * "catch\n" *
                             ' '^model.indentation * "   print(\"insert a byte :\"); cells[p] = UInt8(0)\n" *
-                            ' '^model.indentation * "end\n" ))
+                            ' '^model.indentation * "end\n" )^n)
         juInstructions['['] = (n -> (str = ' '^model.indentation * "while (cells[p] != 0)\n"; model.indentation+=3;
                                     str * ' '^model.indentation * "global p\n"))
         juInstructions[']'] = (n -> (model.indentation-=3 ; (' '^model.indentation) * "end\n"))
@@ -84,13 +90,37 @@ module main
     documentation
     """
     function getCode!(model)
+        miniSet = ['+', '-', '>', '<', '.', ',']
         juInstructions = getCodesSet(model)
         #bfcFreq = countmap([c for c in model.bfCode])
         #code = "global p=1 # pointer \ncells = fill(UInt8(0),$(get(bfcFreq,'>',0)+1),1)\n"
         code = "global p=1 # pointer \ncells = fill(UInt8(0),($(model.nC)+50),1)\n"
+        counter = 0
+        prevChar = '+'
+        doPrev = false
         for c in model.bfCode
-            code *= juInstructions[c](1)
+            #=if prevChar == ' '
+                prevChar = c
+            end=#
+            doPrev = true
+            if (c ∉ miniSet)
+                code *= juInstructions[prevChar](counter)
+                code *= juInstructions[c](1)
+                doPrev = false
+                prevChar = '+'
+                counter = 0
+            elseif c ∈ miniSet && prevChar == c
+                counter += 1
+            else
+                code *= juInstructions[prevChar](counter)
+                prevChar = c
+                counter = 1
+            end
+
         end # for
+        if doPrev
+            code *= juInstructions[prevChar](counter)
+        end # if
         code
     end # function
 

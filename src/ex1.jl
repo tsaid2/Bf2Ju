@@ -1,12 +1,63 @@
 global p=1 # pointer 
-cells = fill(UInt8(0),(1+50),1)
-cells[p] = (cells[p] + 1) % 256 
+cells = fill(UInt8(0),(2+50),1)
+try
+   print("insert a byte :"); cells[p] = UInt8(readline()[1])
+catch
+   print("insert a byte :"); cells[p] = UInt8(0)
+end
 while (cells[p] != 0)
    global p
-   try
-      print("insert a byte :"); cells[p] = UInt8(readline()[1])
-   catch
-      print("insert a byte :"); cells[p] = UInt8(0)
-   end
-   print(Char(cells[p]))
+   p += 1
 end
+cells[p] = (cells[p] - 1) % 256 
+cells[p] = (cells[p] + 1) % 256 
+try
+   print("insert a byte :"); cells[p] = UInt8(readline()[1])
+catch
+   print("insert a byte :"); cells[p] = UInt8(0)
+end
+p += 1
+p -= 1
+while (cells[p] != 0)
+   global p
+   cells[p] = (cells[p] + 1) % 256 
+   p -= 1
+   cells[p] = (cells[p] - 1) % 256 
+   p += 1
+end
+try
+   print("insert a byte :"); cells[p] = UInt8(readline()[1])
+catch
+   print("insert a byte :"); cells[p] = UInt8(0)
+end
+cells[p] = (cells[p] + 1) % 256 
+p -= 1
+print(Char(cells[p]))
+cells[p] = (cells[p] + 2) % 256 
+try
+   print("insert a byte :"); cells[p] = UInt8(readline()[1])
+catch
+   print("insert a byte :"); cells[p] = UInt8(0)
+end
+p += 1
+cells[p] = (cells[p] + 1) % 256 
+try
+   print("insert a byte :"); cells[p] = UInt8(readline()[1])
+catch
+   print("insert a byte :"); cells[p] = UInt8(0)
+end
+while (cells[p] != 0)
+   global p
+   p += 1
+end
+cells[p] = (cells[p] + 2) % 256 
+print(Char(cells[p]))
+cells[p] = (cells[p] + 1) % 256 
+cells[p] = (cells[p] - 1) % 256 
+while (cells[p] != 0)
+   global p
+   print(Char(cells[p]))
+   cells[p] = (cells[p] - 1) % 256 
+end
+p -= 1
+p += 1
