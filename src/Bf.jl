@@ -6,7 +6,7 @@ module BfInterpreter
 
     #using ResumableFunctions
 
-    export getInstructionsDict, execute, bfVM, MermoryBfVM, genesToBfInstructions
+    export getInstructionsDict, execute, MermoryBfVM
 
 
     struct MermoryBfVM <: Exception
@@ -138,8 +138,16 @@ module BfInterpreter
     #=function execute(bfcode :: String, input :: Array{UInt8,1}, instructionSet)
         execute(bfcode, join(map((v -> Char(v)), input), ""), instructionSet)
     end =#
+    function execute(bfCode :: String)
+        execute(bfCode :: String, "", getInstructionsDict())
+    end
 
-    function execute(bfcode :: String, instructionSet )
+    function execute(bfCode :: String, input)
+        execute(bfCode, input, getInstructionsDict())
+    end
+
+
+    function execute(bfcode :: String, instructionSet :: Dict)
         execute(bfcode, "", instructionSet)
     end
 
@@ -148,7 +156,7 @@ module BfInterpreter
     end=#
 
     function execute(bfcode :: String, input , instructionSet )
-
+        cellnomax = 1
         # initialize the vm
         vm = bfVM( [0 for i=1:2000], 2000, 1, length(bfcode),
                     0, 2000, -1 , 0, Dict(), false, false, [],
@@ -163,6 +171,7 @@ module BfInterpreter
             #global cellno
             #ignoreCharacter = ignoreJump | ignoreComment
             cmd = bfcode[ vm.m_InstructionPointer]
+            cellnomax = max(vm.cellno, cellnomax)
             try
                 instructionSet[cmd](vm)
             catch y
@@ -171,7 +180,7 @@ module BfInterpreter
 
             @debug "Executed $cmd at $m_InstructionPointer. Current cell # $(cellno)\t$(cells[cellno])"
         end
-        vm.output, vm.nbExec
+        vm.output, cellnomax
     end
 
 
