@@ -7,7 +7,7 @@ module BfInterpreter
     #using ResumableFunctions
 
     export getInstructionsDict, execute, MermoryBfVM
-
+ 
 
     struct MermoryBfVM <: Exception
         message :: String
