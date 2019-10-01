@@ -69,21 +69,16 @@ module BfInterpreter
                 end
                 #vm.cells[ vm.cellno] = vm.cells[ vm.cellno]+1
             end
-        instructionsSet['>'] = vm -> ((!vm.ignoreJump && !vm.ignoreComment) ?
-            #=lcells = length(vm.cells)
-            #@assert vm.cellno < lcells
-            if vm.cellno == lcells
-                throw(MermoryBfVM("Memory: 1 => 1 ($(vm.cells[1])) , $lcells => 1 ($(vm.cells[lcells]))"))
-            end=#
-            vm.cellno = vm.cellno + 1
-            : nothing)
+        instructionsSet['>'] = vm ->
+            if (vm.cellno == vm.nbCells)
+                throw(MermoryBfVM("Memory: 1 => 1 ($(vm.cells[1])) , $(vm.nbCells) => 1 ($(vm.cells[vm.nbCells]))"))
+            elseif (!vm.ignoreJump && !vm.ignoreComment)
+                no = vm.cellno + 1
+            end
         instructionsSet['<'] = vm ->
-            if !vm.ignoreJump && !vm.ignoreComment
-                #=if vm.cellno == 1
-                    lcells = vm.nbCells #length(vm.cells)
-                    throw(MermoryBfVM("Memory: 1 => 1 ($(vm.cells[1])) , $lcells => 1 ($(vm.cells[lcells]))"))
-                end=#
-                #@show vm.cellno
+            if vm.cellno == 1
+                throw(MermoryBfVM("Memory: 1 => 1 ($(vm.cells[1])) , $(vm.nbCells) => 1 ($(vm.cells[vm.nbCells]))"))
+            elseif !vm.ignoreJump && !vm.ignoreComment
                 vm.cellno = vm.cellno - 1
             end
         instructionsSet['.'] = vm -> ((!vm.ignoreJump && !vm.ignoreComment) ?
@@ -155,7 +150,7 @@ module BfInterpreter
         execute(bfcode, join(input, ""), instructionSet)
     end=#
 
-    function execute(bfcode :: String, input , instructionSet )
+    function execute(bfcode :: String, input , instructionSet :: Dict)
         cellnomax = 1
         # initialize the vm
         vm = bfVM( [0 for i=1:2000], 2000, 1, length(bfcode),
@@ -172,11 +167,12 @@ module BfInterpreter
             #ignoreCharacter = ignoreJump | ignoreComment
             cmd = bfcode[ vm.m_InstructionPointer]
             cellnomax = max(vm.cellno, cellnomax)
-            try
+            #=try
                 instructionSet[cmd](vm)
             catch y
                 break
-            end
+            end=#
+            instructionSet[cmd](vm)
 
             @debug "Executed $cmd at $m_InstructionPointer. Current cell # $(cellno)\t$(cells[cellno])"
         end

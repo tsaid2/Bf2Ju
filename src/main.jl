@@ -13,18 +13,17 @@ module main
 
     mutable struct Tmodel
         bfCode :: String
-        variables :: Dict
-        functions :: Dict
         indentation :: Int
         nC :: Int
         code :: String
-        # TODO continue this
-        Tmodel(pgm :: String) = new(pgm, Dict(), Dict(), 0, 0, "")
-    end
+        input :: String
+        Tmodel(pgm :: String) = new(pgm, 0, 0, "", "")
+    end # mutable struct
 
     struct BracketError <: Exception
         message :: String
-    end
+    end # struct
+
 
     #Constants
     global instructionsSet = ['<', '>', '+', '-', '.', ',', '[', ']'] # , '$', '!', '*']
@@ -37,18 +36,23 @@ module main
     documentation
     """=#
     function pre_parser(model)
+        bfcFreq = countmap(collect(model.bfCode))
         # clear the code
         model.bfCode = join(clearCode!(model.bfCode, instructionsSet))
 
         # Verify brackets
         b , indexopen, indexclose, i = v_brackets(model.bfCode)
         if !b && i == -1
-            throw(BracketError("Bracket(s) not closed : $indexopen \n"))
+            model.code *= "@warn \"Bracket(s) not closed : $(filter!(s -> s ∉ indexclose, indexopen))\" \n"
         elseif !b
-            throw(BracketError("There is not a bracket matching with the closer bracket ch. $i \n"))
+            model.code *= "@warn \"There is not a bracket matching with the closer bracket ch.\" $i \n"
         end # if
 
         # check Warnings
+        if get(bfcFreq,'<',0) > get(bfcFreq,'>',0)
+            model.code *= "# Warning : There are more '<' than '>'. There is a risk of negative pointer \n"
+        end
+
 
     end # function
 
@@ -60,14 +64,13 @@ module main
     """=#
     function getCodesSet(model)
         juInstructions = Dict()
-        juInstructions['+'] = (n ->
-                                    if n !=0
+        juInstructions['+'] = (n -> if n !=0
                                         ' '^model.indentation * "cells[p] = (cells[p] + $n) % 256 \n"
                                     else
                                         ""
-                                    end
-                                    )
-        juInstructions['-'] = (n -> ' '^model.indentation * "cells[p] = (cells[p] - $n) % 256 \n")
+                                    end # if
+                                )
+        juInstructions['-'] = (n -> ' '^model.indentation * "cells[p] =  cells[p]== 0 ? UInt8(255) : (cells[p] - $n) \n")
         juInstructions['>'] = (n -> ' '^model.indentation * "p += $n\n")
         juInstructions['<'] = (n -> ' '^model.indentation * "p -= $n\n")
         juInstructions['.'] = (n -> (' '^model.indentation * "print(Char(cells[p]))\n")^n)
@@ -84,13 +87,14 @@ module main
         juInstructions
     end # function
 
+
     """
         getCode(model)
 
     documentation
     """
     function getCode!(model)
-        miniSet = ['+', '-', '>', '<', '.', ',']
+        miniSet = ['[',']']
         juInstructions = getCodesSet(model)
         #bfcFreq = countmap([c for c in model.bfCode])
         #code = "global p=1 # pointer \ncells = fill(UInt8(0),$(get(bfcFreq,'>',0)+1),1)\n"
@@ -103,20 +107,19 @@ module main
                 prevChar = c
             end=#
             doPrev = true
-            if (c ∉ miniSet)
+            if (c ∈ miniSet)
                 code *= juInstructions[prevChar](counter)
                 code *= juInstructions[c](1)
                 doPrev = false
                 prevChar = '+'
                 counter = 0
-            elseif c ∈ miniSet && prevChar == c
+            elseif prevChar == c # && c ∉ miniSet && prevChar == c
                 counter += 1
             else
                 code *= juInstructions[prevChar](counter)
                 prevChar = c
                 counter = 1
-            end
-
+            end # if
         end # for
         if doPrev
             code *= juInstructions[prevChar](counter)
@@ -124,6 +127,12 @@ module main
         code
     end # function
 
+
+    function mainf(files...)
+        for file in files
+            mainf(file)
+        end # for
+    end # function
 
     function mainf(file :: String)
         io = open(file,"r")
@@ -133,11 +142,16 @@ module main
         while rl != ""
             rl = readline(io)
             pgrm *= rl
-        end
+        end # while
         model = Tmodel(pgrm)
         pre_parser(model)
-        output, moves = execute(model.bfCode) # TODO
-        model.nC = moves
+        # Preparse and Execute the algorithm
+        try
+            output, moves = execute(model.bfCode, model.input)
+            model.nC = moves
+        catch exc
+            model.code *= "@warn \"Something went wrong: $exc \" \n"
+        end
         model.code *= getCode!(model)
         fileName, ext = split(file,'.')
         newFName = fileName * ".jl"
@@ -145,6 +159,6 @@ module main
         write(ioff, model.code)
         close(ioff)
         close(io)
-    end
+    end # function
 
 end  # module main
