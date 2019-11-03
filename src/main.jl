@@ -50,7 +50,7 @@ module main
 
         # check Warnings
         if get(bfcFreq,'<',0) > get(bfcFreq,'>',0)
-            model.code *= "# Warning : There are more '<' than '>'. There is a risk of negative pointer \n"
+            model.code *= "@warn \"There are more '<' than '>'. There is a risk of negative pointer \"\n"
         end
 
 
@@ -150,7 +150,7 @@ module main
             output, moves = execute(model.bfCode, model.input)
             model.nC = moves
         catch exc
-            model.code *= "@warn \"Something went wrong: $exc \" \n"
+            model.code *= "@warn \"Something went wrong: $(replace( "$exc","\"" => "\\\"") ) \" \n"
         end
         model.code *= getCode!(model)
         fileName, ext = split(file,'.')

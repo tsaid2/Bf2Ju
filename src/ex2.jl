@@ -1,5 +1,5 @@
-# Warning : There are more '<' than '>'. There is a risk of negative pointer 
-@warn "Something went wrong: Main.main.BfInterpreter.MermoryBfVM("Memory: 1 => 1 (0) , 2000 => 1 (0)") " 
+@warn "There are more '<' than '>'. There is a risk of negative pointer "
+@warn "Something went wrong: Main.main.BfInterpreter.MermoryBfVM(\"Memory: 1 => 1 (0) , 2000 => 1 (0)\") " 
 global p=1 # pointer 
 cells = fill(UInt8(0),(0+50),1)
 while (cells[p] != 0)
